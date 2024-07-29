@@ -10,12 +10,9 @@ app.use(express.json());  // To parse JSON bodies
 app.use(cors());          // To handle CORS
 
 // Connect to MongoDB Atlas
-mongoose.connect("mongodb+srv://service:service@cluster0.dpvyejs.mongodb.net/<database>?retryWrites=true&w=majority", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log("DB connected...."))
-.catch(err => console.error("DB connection error:", err));
+mongoose.connect("mongodb+srv://<username>:<password>@cluster0.dpvyejs.mongodb.net/<database>?retryWrites=true&w=majority")
+    .then(() => console.log("DB connected...."))
+    .catch(err => console.error("DB connection error:", err));
 
 // Routes
 app.get('/hello', (req, res) => {
