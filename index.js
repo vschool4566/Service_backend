@@ -1,21 +1,20 @@
 const express = require('express');
-const { Pool } = require('pg');
+const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const SignUp = require('./models.js');
 
 const app = express();
 
-app.use(express.json());
-app.use(cors());
+// Middleware
+app.use(express.json());  // To parse JSON bodies
+app.use(cors());          // To handle CORS
 
-const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_DATABASE,
-    password: process.env.DB_PASSWORD,
-    port: process.env.DB_PORT,
-});
+// Connect to MongoDB Atlas
+mongoose.connect("mongodb+srv://<username>:<password>@cluster0.dpvyejs.mongodb.net/<database>?retryWrites=true&w=majority")
+    .then(() => console.log("DB connected...."))
+    .catch(err => console.error("DB connection error:", err));
 
+// Routes
 app.get('/hello', (req, res) => {
     res.send("Hello World");
 });
@@ -23,21 +22,21 @@ app.get('/hello', (req, res) => {
 app.post('/signup', async (req, res) => {
     try {
         const { firstname, lastname, email, phoneNumber, password } = req.body;
-
+        
         if (!firstname || !lastname || !email || !phoneNumber || !password) {
             return res.status(400).json({ message: "All fields are required" });
         }
 
-        const query = `
-            INSERT INTO users (firstname, lastname, email, phone_number, password)
-            VALUES ($1, $2, $3, $4, $5) RETURNING *
-        `;
-        const values = [firstname, lastname, email, phoneNumber, password];
+        const newUser = new SignUp({
+            firstname,
+            lastname,
+            email,
+            phoneNumber,
+            password
+        });
 
-        const result = await pool.query(query, values);
-        const newUser = result.rows[0];
-
-        res.status(201).json({ message: "User registered successfully", user: newUser });
+        await newUser.save();
+        res.status(201).json({ message: "User registered successfully" });
 
     } catch (error) {
         console.error("Error during sign-up:", error);
@@ -45,6 +44,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// Start server
 app.listen(8000, () => {
     console.log("Server is running on port 8000");
 });
